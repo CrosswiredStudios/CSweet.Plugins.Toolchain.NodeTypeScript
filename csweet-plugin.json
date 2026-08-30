@@ -1,0 +1,74 @@
+{
+  "$schema": "https://raw.githubusercontent.com/CrosswiredStudios/CSweetAgentSdk/main/schemas/csweet-plugin.v2.schema.json",
+  "manifestVersion": "2.0",
+  "kind": "service",
+  "rolePolicy": {
+    "profile": "individual-contributor.v1",
+    "declaredRoleKeys": ["build-toolchain-provider"]
+  },
+  "id": "com.csweet.toolchain.node-typescript",
+  "name": "Node TypeScript Toolchain",
+  "version": "1.0.0",
+  "publisher": { "id": "com.csweet", "name": "C-Sweet" },
+  "runtime": {
+    "type": "dotnet-project",
+    "projectPath": "src/CSweet.Plugins.Toolchain.NodeTypeScript/CSweet.Plugins.Toolchain.NodeTypeScript.csproj",
+    "targetFramework": "net10.0",
+    "defaultActivationMode": "OnDemand",
+    "defaultTickFrequencySeconds": 300,
+    "supportsMultipleInstallations": true,
+    "maximumConcurrentJobs": 2,
+    "workspaceAccess": "None"
+  },
+  "toolchainAdapters": {
+    "provides": [{ "key": "node-typescript.v1", "version": 1, "definitionResource": "toolchains/node-typescript.v1.json" }],
+    "requires": []
+  },
+  "protocol": { "minimumVersion": "2.0", "maximumVersion": "2.x" },
+  "provides": [
+    {
+      "name": "toolchain.node-typescript.execute.v1",
+      "description": "Executes certified Phaser and Babylon TypeScript web build recipes in C-Sweet managed sandboxes.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": { "type": "string", "minLength": 1 }
+        },
+        "required": ["input"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string" }
+        },
+        "required": ["message"],
+        "additionalProperties": false
+      },
+      "executionTimeoutSeconds": 30,
+      "idempotency": "work-item",
+      "riskClass": "standard"
+    }
+  ],
+  "requires": [
+    { "name": "platform.build.read.v2", "scope": "organization", "purpose": "Read only builds targeted to this provider installation." },
+    { "name": "platform.build.claim.v1", "scope": "organization", "purpose": "Claim targeted builds with a broker-derived Office identity and expiring lease." },
+    { "name": "platform.build.heartbeat.v1", "scope": "organization", "purpose": "Renew the active execution lease between bounded recipe operations." },
+    { "name": "platform.build.report.v2", "scope": "organization", "purpose": "Report bounded outputs, validations, logs, and reproducible provenance." }
+  ],
+  "events": { "subscribes": [] },
+  "configuration": [],
+  "credentials": [],
+  "webAccess": { "mode": "None", "rules": [] },
+  "ui": [],
+  "catalog": {
+    "summary": "Executes certified Phaser and Babylon TypeScript web build recipes in C-Sweet managed sandboxes.",
+    "category": "Toolchains",
+    "role": { "key": "build-toolchain-provider", "name": "Node TypeScript Toolchain" },
+    "license": { "spdxId": "MIT" },
+    "iconUrls": [],
+    "roleAliases": [],
+    "keywords": [],
+    "documentationUrl": "README.md"
+  }
+}

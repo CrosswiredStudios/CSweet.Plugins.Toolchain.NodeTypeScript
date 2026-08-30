@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <Version>1.0.0</Version>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="CSweet.Agent.SDK" Version="3.24.0" Condition="'$(UseLocalCSweetAgentSdk)' != 'true'" />
+    <ProjectReference Include="$(CSweetAgentSdkRepositoryRoot)\src\CSweet.Agent.SDK\CSweet.Agent.SDK.csproj" Condition="'$(UseLocalCSweetAgentSdk)' == 'true'" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\toolchains\node-typescript.v1.json" Link="toolchains\node-typescript.v1.json" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="content\toolchains\" />
+    <Content Include="..\..\fixtures\**\*" Exclude="..\..\fixtures\**\node_modules\**;..\..\fixtures\**\dist\**;..\..\fixtures\**\test-results\**" Link="fixtures\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="content\fixtures\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Content Include="..\..\csweet-plugin.json" Link="csweet-plugin.json" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="content\" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+</Project>

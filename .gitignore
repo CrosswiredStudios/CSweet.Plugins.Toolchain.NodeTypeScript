@@ -1,0 +1,34 @@
+## .NET build artifacts
+**/bin/
+**/obj/
+
+## Node, Vite, and browser-test output
+**/node_modules/
+**/dist/
+**/coverage/
+**/.vite/
+**/test-results/
+**/playwright-report/
+
+## IDE and editor files
+.vs/
+.vscode/*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## Environment and secrets
+.env
+!.env.example
+
+## Generated packages and temporary output
+/artifacts/
+/.artifacts/
+/.tmp/
+*.nupkg
+*.snupkg
+
+## Model files
+**/*.gguf
+**/*.bin
+**/*.safetensors

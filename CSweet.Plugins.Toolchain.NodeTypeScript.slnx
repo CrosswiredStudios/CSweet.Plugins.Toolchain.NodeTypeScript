@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/CSweet.Plugins.Toolchain.NodeTypeScript/CSweet.Plugins.Toolchain.NodeTypeScript.csproj" />
+  <Project Path="tests/CSweet.Plugins.Toolchain.NodeTypeScript.Tests/CSweet.Plugins.Toolchain.NodeTypeScript.Tests.csproj" />
+</Solution>
