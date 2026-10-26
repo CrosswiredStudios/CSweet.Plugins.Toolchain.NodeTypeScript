@@ -62,6 +62,15 @@ jobs:
           if (-not (Test-Path "releases/$version.md")) { throw "Missing releases/$version.md for version $version." }
           if ((Get-Content "releases/$version.md" -TotalCount 1) -ne "# $version") { throw 'Release-note heading must match the manifest version.' }
       - run: dotnet test CSweet.Plugins.Toolchain.NodeTypeScript.slnx -c Release -p:UseLocalCSweetAgentSdk=false -p:UseLocalCSweetWorkManagementContracts=false
+      - uses: actions/setup-node@v4
+        with: { node-version: '24.15.0' }
+      - name: Warm exact fixture locks and install pinned Chromium
+        shell: bash
+        run: |
+          for recipe in phaser babylon; do (cd "fixtures/$recipe" && npm ci --ignore-scripts --no-audit --fund=false); done
+          (cd fixtures/phaser && npx playwright install --with-deps chromium)
+      - name: Verify clean offline fixture execution and deterministic captures
+        run: node scripts/test-fixtures.mjs
       - name: Publish linux-x64 agent
         run: dotnet publish src/CSweet.Plugins.Toolchain.NodeTypeScript/CSweet.Plugins.Toolchain.NodeTypeScript.csproj -c Release --framework net10.0 --runtime linux-x64 --self-contained false -p:UseLocalCSweetAgentSdk=false -p:UseLocalCSweetWorkManagementContracts=false -o publish/linux-x64
       - name: Self-test published agent and pack bundle

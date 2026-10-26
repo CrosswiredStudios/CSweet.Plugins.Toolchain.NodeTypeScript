@@ -12,7 +12,7 @@ public sealed class ToolchainServiceAgent : CSweetAgentBase, IAgentConnectedServ
 {
     public const string DescribeCapability = "toolchain.node-typescript.execute.v1";
     public override string AgentId => "com.csweet.toolchain.node-typescript";
-    public override string Version => "1.0.1";
+    public override string Version => "1.0.2";
 
     protected override Task<AgentWorkResult> ExecuteCapabilityCoreAsync(
         AgentCapabilityRequest request, AgentRuntimeContext context, CancellationToken cancellationToken) =>
@@ -70,8 +70,16 @@ public sealed class ToolchainServiceAgent : CSweetAgentBase, IAgentConnectedServ
         var inputRoot = RequireSandboxRoot("CSWEET_BUILD_INPUT_ROOT");
         var outputRoot = RequireSandboxRoot("CSWEET_BUILD_OUTPUT_ROOT");
         var commands = new List<string>(); var logs = new List<string>();
+        var observed = new Dictionary<string, string>(StringComparer.Ordinal);
         try
         {
+            foreach (var tool in new[] { "node", "npm" })
+            {
+                commands.Add(tool + " --version");
+                observed[tool] = (await RunAsync(tool, ["--version"], inputRoot, token)).Trim().TrimStart('v');
+            }
+            if (observed["node"] != "24.15.0" || observed["npm"] != "11.12.1")
+                throw new InvalidOperationException("The Office image does not provide the exact declared Node 24.15.0 and npm 11.12.1 runtime.");
             RequireFile(inputRoot, "package-lock.json");
             foreach (var command in new[] { "ci --offline --ignore-scripts --no-audit --fund=false", "run lint", "run test", "run build", "run smoke" })
             {
@@ -81,6 +89,13 @@ public sealed class ToolchainServiceAgent : CSweetAgentBase, IAgentConnectedServ
                 build = await context.Platform.HeartbeatBuildAsync(new HeartbeatBuildRequest(build.Id,
                     build.ClaimId!.Value, build.Revision, TimeSpan.FromMinutes(10), $"heartbeat:{build.Id:N}:{build.Revision}"), token);
             }
+            foreach (var package in new[] { "playwright", "vite", "vitest" })
+            {
+                using var metadata = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(inputRoot, "node_modules", package, "package.json"), token));
+                observed[package] = metadata.RootElement.GetProperty("version").GetString()!;
+            }
+            if (observed["playwright"] != "1.62.1")
+                throw new InvalidOperationException("The restored Playwright version does not match the declared toolchain.");
             CopyDirectory(Path.Combine(inputRoot, "dist"), Path.Combine(outputRoot, "dist"));
             var testResults = Path.Combine(inputRoot, "test-results");
             if (Directory.Exists(testResults)) CopyDirectory(testResults, Path.Combine(outputRoot, "captures"));
@@ -88,9 +103,9 @@ public sealed class ToolchainServiceAgent : CSweetAgentBase, IAgentConnectedServ
             var outputs = BuildManifest(outputRoot);
             var lockHash = Sha256(Path.Combine(inputRoot, "package-lock.json"));
             var manifestHash = HashManifest(outputs);
-            var provenance = new BuildExecutionProvenance("com.csweet.toolchain.node-typescript", "1.0.1",
+            var provenance = new BuildExecutionProvenance("com.csweet.toolchain.node-typescript", "1.0.2",
                 build.DefinitionDigest, Environment.GetEnvironmentVariable("CSWEET_CERTIFIED_IMAGE_DIGEST") ?? "broker-missing",
-                JsonSerializer.SerializeToElement(new { node = "24.15.0", npm = "11.12.1", playwright = "1.62.1", vite = "7.3.6", vitest = "3.2.7" }), lockHash, commands,
+                JsonSerializer.SerializeToElement(observed), lockHash, commands,
                 build.SourceRevision, manifestHash, logs.Select((_, i) => $"log:{i + 1}").ToList());
             await AwaitOutputIngestionAsync(token);
             await context.Platform.ReportBuildAsync(new ReportBuildV2Request(build.Id, build.ClaimId!.Value,
@@ -100,9 +115,9 @@ public sealed class ToolchainServiceAgent : CSweetAgentBase, IAgentConnectedServ
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            var provenance = new BuildExecutionProvenance("com.csweet.toolchain.node-typescript", "1.0.1",
+            var provenance = new BuildExecutionProvenance("com.csweet.toolchain.node-typescript", "1.0.2",
                 build.DefinitionDigest, Environment.GetEnvironmentVariable("CSWEET_CERTIFIED_IMAGE_DIGEST") ?? "broker-missing",
-                JsonSerializer.SerializeToElement(new { node = "24.15.0", npm = "11.12.1", playwright = "1.62.1", vite = "7.3.6", vitest = "3.2.7" }), string.Empty, commands,
+                JsonSerializer.SerializeToElement(observed), string.Empty, commands,
                 build.SourceRevision, string.Empty, logs.Select((_, i) => $"log:{i + 1}").ToList());
             await context.Platform.ReportBuildAsync(new ReportBuildV2Request(build.Id, build.ClaimId!.Value,
                 build.Revision, DeliveryBuildStatuses.Failed, [], provenance, [], "node-toolchain-failed",

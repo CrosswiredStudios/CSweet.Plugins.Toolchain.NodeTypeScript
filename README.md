@@ -5,7 +5,7 @@ Executes certified Phaser and Babylon TypeScript web build recipes in C-Sweet ma
 ## Contract
 
 - Package ID: `com.csweet.toolchain.node-typescript`
-- Version: `1.0.1`
+- Version: `1.0.2`
 - Provides: `toolchain.node-typescript.execute.v1`
 - Activation: manual
 - Requested platform capabilities: read targeted builds, claim an assigned build, renew its lease, and report validated outputs. Broker-derived identities and certified Office environments govern execution.
@@ -30,3 +30,5 @@ the exact manifest, grants, activation mode, and source before approving install
 Built with `CSweet.Agent.SDK` 5.5.0.
 
 Published releases include a Linux x64 `.cspb` and SHA-256 checksum. Import that published bundle through Settings > Plugins, review its four targeted build grants, then certify the adapter on an eligible Office image. Installation alone does not certify build capacity.
+
+Office 0.14.0 prepares the required Node 24 runtime, exact offline fixture cache and Chromium. Certification requires that new image digest; older generic development images are insufficient. Runtime provenance records observed versions, and deterministic fixture captures wait for a rendered frame.
