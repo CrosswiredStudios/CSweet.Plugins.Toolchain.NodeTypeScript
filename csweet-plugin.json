@@ -8,7 +8,7 @@
   },
   "id": "com.csweet.toolchain.node-typescript",
   "name": "Node TypeScript Toolchain",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": { "id": "com.csweet", "name": "C-Sweet" },
   "runtime": {
     "type": "dotnet-project",
@@ -40,9 +40,12 @@
       "outputSchema": {
         "type": "object",
         "properties": {
-          "message": { "type": "string" }
+          "adapterKey": { "type": "string" },
+          "recipes": { "type": "array", "items": { "type": "string" } },
+          "node": { "type": "string" },
+          "npm": { "type": "string" }
         },
-        "required": ["message"],
+        "required": ["adapterKey", "recipes", "node", "npm"],
         "additionalProperties": false
       },
       "executionTimeoutSeconds": 30,
