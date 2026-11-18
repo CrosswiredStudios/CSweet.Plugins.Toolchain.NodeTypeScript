@@ -3,7 +3,19 @@ import { createHash } from "node:crypto";
 import { readFile, readdir, rm } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-const fixtures = path.resolve(process.argv[2] ?? fileURLToPath(new URL("../fixtures", import.meta.url)));
+const prepare = process.argv.includes("--prepare");
+const fixtureRoot = path.resolve(process.argv.slice(2).find(arg => arg !== "--prepare") ?? fileURLToPath(new URL("../fixtures", import.meta.url)));
+const provider = JSON.parse(await readFile(new URL("../toolchains/node-typescript.v1.json", import.meta.url), "utf8"));
+const resources = [...new Set(provider.recipes.flatMap(recipe => recipe.certificationFixtures.map(fixture => fixture.resource)))];
+if (!resources.length) throw new Error("The provider needs at least one certification fixture");
+const fixtures = resources.map(resource => {
+  if (!resource.startsWith("fixtures/")) throw new Error("Fixture must be a packaged resource: " + resource);
+  const directory = path.resolve(fixtureRoot, resource.slice("fixtures/".length));
+  const relative = path.relative(fixtureRoot, directory);
+  if (!relative || relative === ".." || relative.startsWith(".." + path.sep) || path.isAbsolute(relative))
+    throw new Error("Fixture directory must be inside the requested root: " + resource);
+  return directory;
+});
 function command(cwd, ...args) {
   const result = spawnSync("npm", args, { cwd, stdio: "inherit", env: process.env });
   if (result.error) throw result.error;
@@ -19,8 +31,13 @@ async function manifest(root, relative = "") {
   }
   return results;
 }
-for (const recipe of ["phaser", "babylon"]) {
-  const cwd = path.join(fixtures, recipe);
+if (prepare) {
+  for (const cwd of fixtures) command(cwd, "ci", "--ignore-scripts", "--no-audit", "--fund=false");
+  command(fixtures[0], "exec", "--offline", "--", "playwright", "install", "--with-deps", "chromium");
+  process.exit(0);
+}
+for (const cwd of fixtures) {
+  const recipe = path.basename(cwd);
   const runs = [];
   for (const pass of [1, 2]) {
     await rm(path.join(cwd, "dist"), { recursive: true, force: true });

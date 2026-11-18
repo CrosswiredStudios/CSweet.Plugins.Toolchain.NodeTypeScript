@@ -1,11 +1,11 @@
 # Node TypeScript Toolchain
 
-Executes certified Phaser and Babylon TypeScript web build recipes in C-Sweet managed sandboxes.
+Executes the certified Node and TypeScript web build recipes declared by this provider in C-Sweet managed sandboxes.
 
 ## Contract
 
 - Package ID: `com.csweet.toolchain.node-typescript`
-- Version: `1.0.3`
+- Version: `1.0.4`
 - Provides: `toolchain.node-typescript.execute.v1`
 - Activation: manual
 - Requested platform capabilities: read targeted builds, claim an assigned build, renew its lease, and report validated outputs. Broker-derived identities and certified Office environments govern execution.

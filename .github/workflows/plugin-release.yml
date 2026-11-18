@@ -66,9 +66,7 @@ jobs:
         with: { node-version: '24.15.0' }
       - name: Warm exact fixture locks and install pinned Chromium
         shell: bash
-        run: |
-          for recipe in phaser babylon; do (cd "fixtures/$recipe" && npm ci --ignore-scripts --no-audit --fund=false); done
-          (cd fixtures/phaser && npx playwright install --with-deps chromium)
+        run: node scripts/test-fixtures.mjs --prepare
       - name: Verify clean offline fixture execution and deterministic captures
         run: node scripts/test-fixtures.mjs
       - name: Publish linux-x64 agent

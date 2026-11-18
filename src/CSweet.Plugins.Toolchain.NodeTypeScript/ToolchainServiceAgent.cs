@@ -18,7 +18,7 @@ public sealed class ToolchainServiceAgent : CSweetAgentBase, IAgentConnectedServ
 
     public const string DescribeCapability = "toolchain.node-typescript.execute.v1";
     public override string AgentId => "com.csweet.toolchain.node-typescript";
-    public override string Version => "1.0.3";
+    public override string Version => "1.0.4";
 
     protected override Task<AgentWorkResult> ExecuteCapabilityCoreAsync(
         AgentCapabilityRequest request, AgentRuntimeContext context, CancellationToken cancellationToken) =>
@@ -109,7 +109,7 @@ public sealed class ToolchainServiceAgent : CSweetAgentBase, IAgentConnectedServ
             var outputs = BuildManifest(outputRoot);
             var lockHash = Sha256(Path.Combine(inputRoot, "package-lock.json"));
             var manifestHash = HashManifest(outputs);
-            var provenance = new BuildExecutionProvenance("com.csweet.toolchain.node-typescript", "1.0.3",
+            var provenance = new BuildExecutionProvenance("com.csweet.toolchain.node-typescript", "1.0.4",
                 build.DefinitionDigest, Environment.GetEnvironmentVariable("CSWEET_CERTIFIED_IMAGE_DIGEST") ?? "broker-missing",
                 JsonSerializer.SerializeToElement(observed), lockHash, commands,
                 build.SourceRevision, manifestHash, logs.Select((_, i) => $"log:{i + 1}").ToList());
@@ -121,7 +121,7 @@ public sealed class ToolchainServiceAgent : CSweetAgentBase, IAgentConnectedServ
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            var provenance = new BuildExecutionProvenance("com.csweet.toolchain.node-typescript", "1.0.3",
+            var provenance = new BuildExecutionProvenance("com.csweet.toolchain.node-typescript", "1.0.4",
                 build.DefinitionDigest, Environment.GetEnvironmentVariable("CSWEET_CERTIFIED_IMAGE_DIGEST") ?? "broker-missing",
                 JsonSerializer.SerializeToElement(observed), string.Empty, commands,
                 build.SourceRevision, string.Empty, logs.Select((_, i) => $"log:{i + 1}").ToList());

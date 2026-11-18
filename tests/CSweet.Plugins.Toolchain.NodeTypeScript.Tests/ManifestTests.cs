@@ -21,7 +21,15 @@ public sealed class ManifestTests
             .Descendants("Version").Single().Value);
         Assert.Equal($"# {agent.Version}", File.ReadLines(Path.Combine(root, "releases", $"{agent.Version}.md")).First());
         using var definition = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(root, "toolchains", "node-typescript.v1.json")));
-        Assert.Contains(definition.RootElement.GetProperty("recipes").EnumerateArray(), x => x.GetProperty("key").GetString() == "phaser.web-2d.v1");
+        var recipes = definition.RootElement.GetProperty("recipes").EnumerateArray().ToArray();
+        Assert.NotEmpty(recipes);
+        foreach (var recipe in recipes)
+        {
+            var fixtures = recipe.GetProperty("certificationFixtures").EnumerateArray().ToArray();
+            Assert.NotEmpty(fixtures);
+            foreach (var fixture in fixtures)
+                Assert.True(File.Exists(Path.Combine(root, fixture.GetProperty("resource").GetString()!, "package-lock.json")));
+        }
         Assert.Contains(ToolchainServiceAgent.DescribeCapability, manifest.Capabilities);
         Assert.True(File.Exists(Path.Combine(
             root,

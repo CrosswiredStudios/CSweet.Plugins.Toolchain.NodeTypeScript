@@ -8,7 +8,7 @@
   },
   "id": "com.csweet.toolchain.node-typescript",
   "name": "Node TypeScript Toolchain",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "publisher": { "id": "com.csweet", "name": "C-Sweet" },
   "runtime": {
     "type": "dotnet-project",
@@ -28,7 +28,7 @@
   "provides": [
     {
       "name": "toolchain.node-typescript.execute.v1",
-      "description": "Executes certified Phaser and Babylon TypeScript web build recipes in C-Sweet managed sandboxes.",
+      "description": "Executes the certified Node and TypeScript web build recipes declared by this provider in C-Sweet managed sandboxes.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -65,7 +65,7 @@
   "webAccess": { "mode": "None", "rules": [] },
   "ui": [],
   "catalog": {
-    "summary": "Executes certified Phaser and Babylon TypeScript web build recipes in C-Sweet managed sandboxes.",
+    "summary": "Executes the certified Node and TypeScript web build recipes declared by this provider in C-Sweet managed sandboxes.",
     "category": "Toolchains",
     "role": { "key": "build-toolchain-provider", "name": "Node TypeScript Toolchain" },
     "license": { "spdxId": "MIT" },
