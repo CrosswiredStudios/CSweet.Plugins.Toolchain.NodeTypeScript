@@ -10,14 +10,20 @@ namespace CSweet.Plugins.Toolchain.NodeTypeScript;
 
 public sealed class ToolchainServiceAgent : CSweetAgentBase, IAgentConnectedService
 {
+    private sealed record ProviderDefinition(string Key, Recipe[] Recipes, Dictionary<string, string> RequiredExecutableVersions);
+    private sealed record Recipe(string Key);
+    private static readonly ProviderDefinition Definition = JsonSerializer.Deserialize<ProviderDefinition>(
+        File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "toolchains", "node-typescript.v1.json")),
+        new JsonSerializerOptions(JsonSerializerDefaults.Web)) ?? throw new InvalidDataException("Missing toolchain definition.");
+
     public const string DescribeCapability = "toolchain.node-typescript.execute.v1";
     public override string AgentId => "com.csweet.toolchain.node-typescript";
-    public override string Version => "1.0.2";
+    public override string Version => "1.0.3";
 
     protected override Task<AgentWorkResult> ExecuteCapabilityCoreAsync(
         AgentCapabilityRequest request, AgentRuntimeContext context, CancellationToken cancellationToken) =>
         Task.FromResult(request.Capability == DescribeCapability
-            ? AgentWorkResult.Success(new { adapterKey = "node-typescript.v1", recipes = new[] { "phaser.web-2d.v1", "babylon.web-3d.v1" }, node = "24.15.0", npm = "11.12.1" })
+            ? AgentWorkResult.Success(new { adapterKey = Definition.Key, recipes = Definition.Recipes.Select(x => x.Key), node = Definition.RequiredExecutableVersions["node"], npm = Definition.RequiredExecutableVersions["npm"] })
             : AgentWorkResult.Failure($"Capability '{request.Capability}' is not supported."));
 
     public override async Task HandleEventAsync(AgentEventEnvelope message, AgentRuntimeContext context, CancellationToken cancellationToken)
@@ -29,7 +35,7 @@ public sealed class ToolchainServiceAgent : CSweetAgentBase, IAgentConnectedServ
         var builds = await context.Platform.ReadBuildsAsync(new ReadBuildV2Request(resourceEvent.AggregateId), cancellationToken);
         var build = builds.SingleOrDefault();
         if (build is null || build.Status != DeliveryBuildStatuses.Queued ||
-            build.RecipeKey is not ("phaser.web-2d.v1" or "babylon.web-3d.v1")) return;
+            !Definition.Recipes.Any(recipe => recipe.Key == build.RecipeKey)) return;
         var claimed = await context.Platform.ClaimBuildAsync(new ClaimBuildRequest(build.Id, build.Revision,
             TimeSpan.FromMinutes(10), $"claim:{build.Id:N}:{build.Attempt + 1}"), cancellationToken);
         await ExecuteBuildAsync(claimed, context, cancellationToken);
@@ -103,7 +109,7 @@ public sealed class ToolchainServiceAgent : CSweetAgentBase, IAgentConnectedServ
             var outputs = BuildManifest(outputRoot);
             var lockHash = Sha256(Path.Combine(inputRoot, "package-lock.json"));
             var manifestHash = HashManifest(outputs);
-            var provenance = new BuildExecutionProvenance("com.csweet.toolchain.node-typescript", "1.0.2",
+            var provenance = new BuildExecutionProvenance("com.csweet.toolchain.node-typescript", "1.0.3",
                 build.DefinitionDigest, Environment.GetEnvironmentVariable("CSWEET_CERTIFIED_IMAGE_DIGEST") ?? "broker-missing",
                 JsonSerializer.SerializeToElement(observed), lockHash, commands,
                 build.SourceRevision, manifestHash, logs.Select((_, i) => $"log:{i + 1}").ToList());
@@ -115,7 +121,7 @@ public sealed class ToolchainServiceAgent : CSweetAgentBase, IAgentConnectedServ
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            var provenance = new BuildExecutionProvenance("com.csweet.toolchain.node-typescript", "1.0.2",
+            var provenance = new BuildExecutionProvenance("com.csweet.toolchain.node-typescript", "1.0.3",
                 build.DefinitionDigest, Environment.GetEnvironmentVariable("CSWEET_CERTIFIED_IMAGE_DIGEST") ?? "broker-missing",
                 JsonSerializer.SerializeToElement(observed), string.Empty, commands,
                 build.SourceRevision, string.Empty, logs.Select((_, i) => $"log:{i + 1}").ToList());

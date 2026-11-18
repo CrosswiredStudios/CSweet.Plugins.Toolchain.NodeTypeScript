@@ -5,7 +5,7 @@ Executes certified Phaser and Babylon TypeScript web build recipes in C-Sweet ma
 ## Contract
 
 - Package ID: `com.csweet.toolchain.node-typescript`
-- Version: `1.0.2`
+- Version: `1.0.3`
 - Provides: `toolchain.node-typescript.execute.v1`
 - Activation: manual
 - Requested platform capabilities: read targeted builds, claim an assigned build, renew its lease, and report validated outputs. Broker-derived identities and certified Office environments govern execution.
